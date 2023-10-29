@@ -2,6 +2,7 @@ import java.util.HashMap;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -55,35 +56,35 @@ public class Main {
             System.out.println(s);
         }
         public void cd(){
-            if (this.parser.args.length != 1) {
-                System.out.println("Wrong number of arguments");
+            if (parser.args.length < 1) {
+                System.out.println("You have to provide at least one argument");
                 return;
             }
+
+            String pathString = "";
+            
+            for (int i = 0; i < parser.args.length; i++) {
+                pathString += parser.args[i] + " ";
+            }
+            
+            pathString = pathString.substring(0, pathString.length() - 1);
+            
             try {
-                Path newPath = Paths.get(parser.args[0]);
-                if (newPath.isAbsolute()) {
-                    this.path = newPath;
-                    return;
-                } else {
-                    this.path = this.path.resolve(newPath);
-                
+                Path newPath = Path.of(pathString);
+                if (!newPath.isAbsolute()) {
+                    newPath = Path.of(this.path.toString() + "/" + pathString); 
                 }
-                // System.out.println(path.getFileName());
-                // path = path.resolve(path.toString() + "/" + parser.args[0]);
-                // System.out.println(path.isAbsolute());
-                // this.path = this.path.getParent();
-                this.path = Paths.get(this.path.toString(), parser.args[0]);
-                System.out.println(this.path.toUri());
-                this.pwd();
+                this.path = newPath.toRealPath();
             } catch (Exception e) {
-                System.out.println("Wrong path");
-                return;
+                System.out.println("Invalid path");
             }
         }
         // ...
         
         //This method will choose the suitable command method to be called
         public boolean chooseCommandAction(){
+            System.out.println();
+            System.out.print(path.toString() + "> ");
             String input = System.console().readLine();
             this.parser.parse(input);
             if (this.parser.commandName.equals("exit")) {
