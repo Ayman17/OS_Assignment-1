@@ -3,6 +3,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Main {
 
@@ -23,7 +24,7 @@ public class Main {
     
         public Terminal(){
             initCommandMap();
-            this.path = Path.of("");
+            this.path = Path.of("").toAbsolutePath();
             this.parser = new Parser();
         }
 
@@ -50,7 +51,7 @@ public class Main {
             System.out.println();
         }
         public void pwd(){
-            String s = this.path.toAbsolutePath().toString();
+            String s = this.path.toString();
             System.out.println(s);
         }
         public void cd(){
@@ -59,7 +60,20 @@ public class Main {
                 return;
             }
             try {
-                path = path.resolve(parser.args[0]);
+                Path newPath = Paths.get(parser.args[0]);
+                if (newPath.isAbsolute()) {
+                    this.path = newPath;
+                    return;
+                } else {
+                    this.path = this.path.resolve(newPath);
+                
+                }
+                // System.out.println(path.getFileName());
+                // path = path.resolve(path.toString() + "/" + parser.args[0]);
+                // System.out.println(path.isAbsolute());
+                // this.path = this.path.getParent();
+                this.path = Paths.get(this.path.toString(), parser.args[0]);
+                System.out.println(this.path.toUri());
                 this.pwd();
             } catch (Exception e) {
                 System.out.println("Wrong path");
