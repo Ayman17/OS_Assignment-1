@@ -44,6 +44,7 @@ public class Main {
             // commandMap.put("history", v -> history(parser.args));
         }
 
+        // TODO: create dirs for each args
         private String getPathStringFromArgs(String[] args) {
             String pathString = "";
             
@@ -56,7 +57,7 @@ public class Main {
             return pathString;
         }
 
-        private Path getNewPath(Path oldPath, Path newPath) {
+        private Path getNewPath(Path newPath) {
                 try {
                 if (!newPath.isAbsolute()) {
                     newPath = Path.of(this.path.toString() + "/" + newPath.toString()); 
@@ -67,20 +68,49 @@ public class Main {
                 return null;
             }
         }
+        
+        private boolean checkValideCreation(Path newPath, String pathString) {
+            if (parser.args.length < 1) {
+                System.out.println("You have to provide at least one argument");
+                return false;
+            }
+            
+            // check existing file or directory 
+            if (getNewPath(newPath) != null) {
+                System.out.println("File already exists: " + pathString);
+                return false; 
+            }
+
+            // check if the parent directory is root 
+            if (newPath.getParent() == null) {
+                newPath = Path.of("");
+                newPath = getNewPath(newPath);
+            } else {
+                newPath = getNewPath(newPath.getParent());
+            }
+
+            // check if the parent directory exists
+            if (newPath == null) {
+                System.out.println("Cannot create directory: " + pathString +  " No such file or directory");
+                return false;
+            }
+            
+            return true;
+        }
         //Implement each command in a method, for example:
-        public void echo(){
+        private void echo(){
             for (int i = 0; i < parser.args.length; i++) {
                 System.out.print(parser.args[i] + " ");
             }
             System.out.println();
         }
         
-        public void pwd(){
+        private void pwd(){
             String s = this.path.toString();
             System.out.println(s);
         }
         
-        public void cd(){
+        private void cd(){
             if (parser.args.length < 1) {
                 System.out.println("You have to provide at least one argument");
                 return;
@@ -89,7 +119,7 @@ public class Main {
             String pathString = getPathStringFromArgs(parser.args);
             
             Path newPath = Path.of(pathString);
-            newPath = getNewPath(path, newPath);
+            newPath = getNewPath(newPath);
 
             if (newPath == null) {
                 System.out.println("Invalid path");
@@ -127,40 +157,20 @@ public class Main {
         } 
 
         private void mkdir() {
-            if (parser.args.length < 1) {
-                System.out.println("You have to provide at least one argument");
-                return;
-            }
-
             String pathString = getPathStringFromArgs(parser.args);
 
             Path newPath = Path.of(pathString);
-            
-            String newDirectoryName = newPath.getFileName().toString();
 
-            if (getNewPath(path, newPath) != null) {
-                System.out.println("File already exists: " + pathString);
-                return; 
+            if (!checkValideCreation(newPath, pathString)) {
+                return;
             }
 
-            if (newPath.getParent() == null) {
-                newPath = Path.of("");
-                newPath = getNewPath(path, newPath);
-            } else {
-                newPath = getNewPath(newPath, newPath.getParent());
-            }
-
-            if (newPath == null) {
-                System.out.println("Cannot create directory: " + pathString +  " No such file or directory");
-            } else {
-                try {
-                    newPath = newPath.resolve(newDirectoryName);
-                    Files.createDirectory(newPath);
-                } catch (Exception e) {
-                    System.out.println("hello");
-                    return;
-                }
-            }
+            try {
+                Files.createDirectory(newPath);
+            } catch (Exception e) {
+                System.out.println("An unexpected error occurred");
+                return;
+            } 
         }
 
         private void rmdir() {
@@ -173,30 +183,35 @@ public class Main {
 
             Path newPath = Path.of(pathString);
 
-            try {
+            if (getNewPath(newPath) != null) {
+                try {
                 Files.delete(newPath);
-            } catch (Exception e) {
-                System.out.println("An unexpected error occurred");
-                return; 
+                } catch (Exception e) {
+                    System.out.println("An unexpected error occurred");
+                    return; 
+                }
+            } else {
+                System.out.println(pathString +  " No such file or directory");
             }
+
+            
         }
         
         private void touch() {
-            if (parser.args.length < 1) {
-                System.out.println("You have to provide at least one argument");
-                return;
-            }
-
             String pathString = getPathStringFromArgs(parser.args);
 
             Path newPath = Path.of(pathString);
-            newPath = this.path.resolve(newPath);
+
+            if (!checkValideCreation(newPath, pathString)) {
+                return;
+            }
 
             try {
+                newPath = this.path.resolve(newPath);
                 Files.createFile(newPath);
             } catch (Exception e) {
                 System.out.println("An unexpected error occurred");
-                return; 
+                return;
             }
         }
         // This method will choose the suitable command method to be called
