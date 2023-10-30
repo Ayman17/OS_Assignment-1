@@ -3,6 +3,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Main {
@@ -74,11 +75,12 @@ public class Main {
             }
             System.out.println();
         }
+        
         public void pwd(){
             String s = this.path.toString();
             System.out.println(s);
         }
-
+        
         public void cd(){
             if (parser.args.length < 1) {
                 System.out.println("You have to provide at least one argument");
@@ -134,6 +136,16 @@ public class Main {
             String pathString = getPathStringFromArgs(parser.args);
 
             Path newPath = Path.of(pathString);
+
+            //TODO: this code is work and create new directory
+            // try {
+            //     Files.createDirectory(newPath);
+            // } catch (Exception e) {
+            //     System.out.println("An unexpected error occurred");
+            //     return; 
+            // }
+
+            //TODO: this code isn't work with Ayman no errors but don't create new directory
             String newDirectoryName = newPath.getFileName().toString();
 
             if (getNewPath(path, newPath) != null) {
