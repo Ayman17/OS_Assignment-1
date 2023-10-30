@@ -80,16 +80,34 @@ public class Main {
         }
 
         private void  ls() {
-            if (parser.args.length > 0) {
-                System.out.println("You have to provide at least one argument");
+            if (parser.args.length > 1) {
+                System.out.println("Wrong number of arguments");
                 return;
             }
 
-            File currentFolder =new File(this.path.toUri());
+            boolean inReverse = false;
 
-            for (File file : currentFolder.listFiles()) {
-                System.out.print(file.getName() + "\t");
+            if (parser.args.length == 1) {
+                if (parser.args[0].equals("-r")) {
+                    inReverse = true;
+                } else {
+                    System.out.println("Invalid argument");
+                    return;
+                }
             }
+
+
+            File currentFolder =new File(this.path.toUri());
+            File[] files = currentFolder.listFiles();
+
+            for (int i = 0; i <  files.length; i++) {
+                int currentFileIndex = i;
+                if (inReverse) {
+                    currentFileIndex = (files.length - 1) - i;
+                }
+                System.out.print(files[currentFileIndex].getName() + "\t");
+            }
+
             System.out.println();
 
         } 
