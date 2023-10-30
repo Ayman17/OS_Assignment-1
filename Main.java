@@ -35,7 +35,7 @@ public class Main {
             commandMap.put("cd", v -> cd());
             commandMap.put("ls", v -> ls());
             commandMap.put("mkdir", v -> mkdir());
-            // commandMap.put("rmdir", v -> rmdir());
+            commandMap.put("rmdir", v -> rmdir());
             // commandMap.put("touch", v -> touch(parser.args));
             // commandMap.put("cp", v -> cp(parser.args));
             // commandMap.put("rm", v -> rm(parser.args));
@@ -169,7 +169,24 @@ public class Main {
                 }
             }
         }
-        
+
+        private void rmdir() {
+            if (parser.args.length < 1) {
+                System.out.println("You have to provide at least one argument");
+                return;
+            }
+
+            String pathString = getPathStringFromArgs(parser.args);
+
+            Path newPath = Path.of(pathString);
+
+            try {
+                Files.delete(newPath);
+            } catch (Exception e) {
+                System.out.println("An unexpected error occurred");
+                return; 
+            }
+        }
         // This method will choose the suitable command method to be called
         public boolean chooseCommandAction(){
             System.out.println();
