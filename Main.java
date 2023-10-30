@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class Main {
 
@@ -33,7 +32,7 @@ public class Main {
             commandMap.put("echo", v -> echo());
             commandMap.put("pwd", v -> pwd());
             commandMap.put("cd", v -> cd());
-            // commandMap.put("ls", v -> ls());
+            commandMap.put("ls", v -> ls());
             // commandMap.put("mkdir", v -> mkdir(parser.args));
             // commandMap.put("rmdir", v -> rmdir(parser.args));
             // commandMap.put("touch", v -> rmdir(parser.args));
@@ -45,8 +44,7 @@ public class Main {
         }
         //Implement each command in a method, for example:
         public void echo(){
-            for (int i = 0; i < parser.args.length; i++)
-            {
+            for (int i = 0; i < parser.args.length; i++) {
                 System.out.print(parser.args[i] + " ");
             }
             System.out.println();
@@ -75,11 +73,26 @@ public class Main {
                     newPath = Path.of(this.path.toString() + "/" + pathString); 
                 }
                 this.path = newPath.toRealPath();
+
             } catch (Exception e) {
                 System.out.println("Invalid path");
             }
         }
-        // ...
+
+        private void  ls() {
+            if (parser.args.length > 0) {
+                System.out.println("You have to provide at least one argument");
+                return;
+            }
+
+            File currentFolder =new File(this.path.toUri());
+
+            for (File file : currentFolder.listFiles()) {
+                System.out.print(file.getName() + "\t");
+            }
+            System.out.println();
+
+        } 
         
         //This method will choose the suitable command method to be called
         public boolean chooseCommandAction(){
@@ -90,7 +103,7 @@ public class Main {
             if (this.parser.commandName.equals("exit")) {
                 return false;
             }
-            if(this.commandMap.containsKey(parser.commandName)){
+            if (this.commandMap.containsKey(parser.commandName)){
                 Consumer<Void> action = this.commandMap.get(parser.commandName);
                 action.accept(null);
             }
