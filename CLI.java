@@ -6,10 +6,10 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class Main {
+public class CLI {
 
     public static void main(String[] args){
-        Terminal terminal = new Main().new Terminal();
+        Terminal terminal = new CLI().new Terminal();
         while(true){
             if (!terminal.chooseCommandAction()) {
                 break;
