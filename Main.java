@@ -185,7 +185,11 @@ public class Main {
 
             if (getNewPath(newPath) != null) {
                 try {
-                Files.delete(newPath);
+                    if (!Files.isDirectory(newPath)) {
+                        System.out.println(pathString + " is not a directory");
+                        return;
+                    }
+                    Files.delete(newPath);
                 } catch (Exception e) {
                     System.out.println("An unexpected error occurred");
                     return; 
