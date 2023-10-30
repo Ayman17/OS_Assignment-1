@@ -33,7 +33,7 @@ public class Main {
             commandMap.put("pwd", v -> pwd());
             commandMap.put("cd", v -> cd());
             commandMap.put("ls", v -> ls());
-            // commandMap.put("mkdir", v -> mkdir(parser.args));
+            commandMap.put("mkdir", v -> mkdir());
             // commandMap.put("rmdir", v -> rmdir(parser.args));
             // commandMap.put("touch", v -> rmdir(parser.args));
             // commandMap.put("cp", v -> cp(parser.args));
@@ -42,6 +42,31 @@ public class Main {
             // commandMap.put("wc", v -> rm(parser.args));
             // commandMap.put("history", v -> rm(parser.args));
         }
+
+        private String getPathStringFromArgs(String[] args) {
+            String pathString = "";
+            
+            for (int i = 0; i < parser.args.length; i++) {
+                pathString += parser.args[i] + " ";
+            }
+            
+            pathString = pathString.substring(0, pathString.length() - 1);
+
+            return pathString;
+        }
+
+        private Path getNewPath(Path oldPath, Path newPath) {
+                try {
+                if (!newPath.isAbsolute()) {
+                    newPath = Path.of(this.path.toString() + "/" + newPath.toString()); 
+                }
+                return newPath.toRealPath();
+
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
         //Implement each command in a method, for example:
         public void echo(){
             for (int i = 0; i < parser.args.length; i++) {
@@ -53,33 +78,26 @@ public class Main {
             String s = this.path.toString();
             System.out.println(s);
         }
+
         public void cd(){
             if (parser.args.length < 1) {
                 System.out.println("You have to provide at least one argument");
                 return;
             }
+           
+            String pathString = getPathStringFromArgs(parser.args);
+            
+            Path newPath = Path.of(pathString);
+            newPath = getNewPath(path, newPath);
 
-            String pathString = "";
-            
-            for (int i = 0; i < parser.args.length; i++) {
-                pathString += parser.args[i] + " ";
-            }
-            
-            pathString = pathString.substring(0, pathString.length() - 1);
-            
-            try {
-                Path newPath = Path.of(pathString);
-                if (!newPath.isAbsolute()) {
-                    newPath = Path.of(this.path.toString() + "/" + pathString); 
-                }
-                this.path = newPath.toRealPath();
-
-            } catch (Exception e) {
+            if (newPath == null) {
                 System.out.println("Invalid path");
-            }
+            } else {
+                this.path = newPath;
+            } 
         }
 
-        private void  ls() {
+        private void ls() {
             if (parser.args.length > 1) {
                 System.out.println("Wrong number of arguments");
                 return;
@@ -96,23 +114,52 @@ public class Main {
                 }
             }
 
-
-            File currentFolder =new File(this.path.toUri());
+            File currentFolder = new File(this.path.toUri());
             File[] files = currentFolder.listFiles();
 
             for (int i = 0; i <  files.length; i++) {
-                int currentFileIndex = i;
-                if (inReverse) {
-                    currentFileIndex = (files.length - 1) - i;
-                }
+                int currentFileIndex = (inReverse) ? (files.length - 1) - i : i;
                 System.out.print(files[currentFileIndex].getName() + "\t");
             }
 
             System.out.println();
-
         } 
+
+        private void mkdir() {
+            if (parser.args.length < 1) {
+                System.out.println("You have to provide at least one argument");
+                return;
+            }
+
+            String pathString = getPathStringFromArgs(parser.args);
+
+            Path newPath = Path.of(pathString);
+            String newDirectoryName = newPath.getFileName().toString();
+
+            if (getNewPath(path, newPath) != null) {
+                System.out.println("File already exists: " + pathString);
+                return; 
+            }
+
+            if (newPath.getParent() == null) {
+                newPath = Path.of("");
+                newPath = getNewPath(path, newPath);
+            } else {
+                newPath = getNewPath(newPath, newPath.getParent());
+            }
+
+            if (newPath == null) {
+                System.out.println("Cannot create directory: " + pathString +  " No such file or directory");
+            } else {
+                File newDirectory = new File(newPath.toString() + "\\" + newDirectoryName);
+                boolean created = newDirectory.mkdir();
+                if (!created) {
+                    System.out.println("An unexpected error occurred");
+                }
+            }
+        }
         
-        //This method will choose the suitable command method to be called
+        // This method will choose the suitable command method to be called
         public boolean chooseCommandAction(){
             System.out.println();
             System.out.print(path.toString() + "> ");
