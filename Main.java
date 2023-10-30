@@ -35,13 +35,13 @@ public class Main {
             commandMap.put("cd", v -> cd());
             commandMap.put("ls", v -> ls());
             commandMap.put("mkdir", v -> mkdir());
-            // commandMap.put("rmdir", v -> rmdir(parser.args));
-            // commandMap.put("touch", v -> rmdir(parser.args));
+            // commandMap.put("rmdir", v -> rmdir());
+            // commandMap.put("touch", v -> touch(parser.args));
             // commandMap.put("cp", v -> cp(parser.args));
             // commandMap.put("rm", v -> rm(parser.args));
-            // commandMap.put("cat", v -> rm(parser.args));
-            // commandMap.put("wc", v -> rm(parser.args));
-            // commandMap.put("history", v -> rm(parser.args));
+            // commandMap.put("cat", v -> cat(parser.args));
+            // commandMap.put("wc", v -> wc(parser.args));
+            // commandMap.put("history", v -> history(parser.args));
         }
 
         private String getPathStringFromArgs(String[] args) {
@@ -67,7 +67,6 @@ public class Main {
                 return null;
             }
         }
-
         //Implement each command in a method, for example:
         public void echo(){
             for (int i = 0; i < parser.args.length; i++) {
