@@ -135,16 +135,7 @@ public class Main {
             String pathString = getPathStringFromArgs(parser.args);
 
             Path newPath = Path.of(pathString);
-
-            //TODO: this code is work and create new directory
-            // try {
-            //     Files.createDirectory(newPath);
-            // } catch (Exception e) {
-            //     System.out.println("An unexpected error occurred");
-            //     return; 
-            // }
-
-            //TODO: this code isn't work with Ayman no errors but don't create new directory
+            
             String newDirectoryName = newPath.getFileName().toString();
 
             if (getNewPath(path, newPath) != null) {
@@ -162,10 +153,12 @@ public class Main {
             if (newPath == null) {
                 System.out.println("Cannot create directory: " + pathString +  " No such file or directory");
             } else {
-                File newDirectory = new File(newPath.toString() + "\\" + newDirectoryName);
-                boolean created = newDirectory.mkdir();
-                if (!created) {
-                    System.out.println("An unexpected error occurred");
+                try {
+                    newPath = newPath.resolve(newDirectoryName);
+                    Files.createDirectory(newPath);
+                } catch (Exception e) {
+                    System.out.println("hello");
+                    return;
                 }
             }
         }
