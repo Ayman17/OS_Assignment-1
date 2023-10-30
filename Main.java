@@ -43,8 +43,7 @@ public class Main {
             // commandMap.put("wc", v -> wc(parser.args));
             // commandMap.put("history", v -> history(parser.args));
         }
-
-        // TODO: create dirs for each args
+        //TODO: args with " " should include " 
         private String getPathStringFromArgs(String[] args) {
             String pathString = "";
             
@@ -157,25 +156,48 @@ public class Main {
         } 
 
         private void mkdir() {
-            String pathString = getPathStringFromArgs(parser.args);
+            for (int i = 0; i < parser.args.length; i++) {
+                String pathString = parser.args[i];
 
-            Path newPath = Path.of(pathString);
+                Path newPath = Path.of(pathString);
 
-            if (!checkValideCreation(newPath, pathString)) {
-                return;
+                if (!checkValideCreation(newPath, pathString)) {
+                    return;
+                }
+
+                try {
+                    newPath = this.path.resolve(newPath);
+                    Files.createDirectory(newPath);
+                } catch (Exception e) {
+                    System.out.println("An unexpected error occurred");
+                    return;
+                } 
             }
-
-            try {
-                Files.createDirectory(newPath);
-            } catch (Exception e) {
-                System.out.println("An unexpected error occurred");
-                return;
-            } 
         }
 
         private void rmdir() {
             if (parser.args.length < 1) {
                 System.out.println("You have to provide at least one argument");
+                return;
+            }
+
+            if (this.parser.args[0].equals("*")) {
+                try {
+                    Files.walk(this.path, 1)
+                        .filter(Files::isDirectory)
+                        .forEach(directory -> {
+                            try {
+                                if (directory != this.path) {
+                                    Files.delete(directory);
+                                }
+                            } catch (Exception e) {
+                                System.out.println("delete faild: (" + directory + ") is not empty");
+                                return;
+                            }
+                        });
+                } catch (Exception e) {
+                    return;
+                }
                 return;
             }
 
@@ -195,7 +217,7 @@ public class Main {
                     return; 
                 }
             } else {
-                System.out.println(pathString +  " No such file or directory");
+                System.out.println("delete faild: (" + pathString +  ") no such file or directory");
             }
 
             
