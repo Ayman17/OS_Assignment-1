@@ -3,8 +3,12 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.io.IOException;
 
 public class CLI {
 
@@ -37,7 +41,7 @@ public class CLI {
             commandMap.put("mkdir", v -> mkdir());
             commandMap.put("rmdir", v -> rmdir());
             commandMap.put("touch", v -> touch());
-            // commandMap.put("cp", v -> cp(parser.args));
+            commandMap.put("cp", v -> cp());
             // commandMap.put("rm", v -> rm(parser.args));
             // commandMap.put("cat", v -> cat(parser.args));
             // commandMap.put("wc", v -> wc(parser.args));
@@ -95,6 +99,29 @@ public class CLI {
             }
             
             return true;
+        }
+        
+        private void copyDir(Path source, Path target) throws IOException {
+
+            if (!Files.exists(target)) {
+                Files.createDirectories(target);
+            }
+            
+            try {
+                DirectoryStream<Path> stream = Files.newDirectoryStream(source);
+                for (Path entry : stream) {
+                    Path targetEntry = target.resolve(entry.getFileName());
+                    if (Files.isDirectory(entry)) {
+                        Files.createDirectories(entry);
+                        copyDir(entry, targetEntry);
+                    }
+                    else {
+                        Files.copy(entry, targetEntry, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+            } catch (IOException e) {
+                System.err.println("Faild to read the file: " + e.getMessage());
+            }
         }
         //Implement each command in a method, for example:
         private void echo(){
@@ -156,10 +183,12 @@ public class CLI {
         } 
 
         private void mkdir() {
+            String pathString = "";
+            Path newPath = Path.of("");
             for (int i = 0; i < parser.args.length; i++) {
-                String pathString = parser.args[i];
+                pathString = parser.args[i];
 
-                Path newPath = Path.of(pathString);
+                newPath = Path.of(pathString);
 
                 if (!checkValideCreation(newPath, pathString)) {
                     return;
@@ -240,6 +269,51 @@ public class CLI {
                 return;
             }
         }
+        
+        private void cp() {
+            if (parser.args.length != 2 && parser.args.length != 3) {
+                System.out.println("You have to provide exactly two arguments: cp (source file) (target file)");
+                return;
+            }
+            
+            String pathString = "";
+            Path newPath = Path.of("");
+
+            
+            
+            for (int i = 0; i < parser.args.length; i++) {
+                pathString = parser.args[i];
+                newPath = Path.of(pathString); 
+                
+                if (this.parser.args[0] == "-r" && (!Files.isDirectory(newPath) || getNewPath(newPath) == null)) {
+                    System.out.println("Faild to copy: (" + pathString + ") is not directory");
+                    return;
+                }
+                if (this.parser.args.length == 2 && (Files.isDirectory(newPath) || getNewPath(newPath) == null)) {
+                    System.out.println("Faild to copy: (" + pathString + ") is not file");
+                    return;
+                }
+            }
+            int inputIndex = (this.parser.args[0].equals("-r")) ? 1 : 0;
+
+            Path source = Path.of(this.parser.args[inputIndex]);
+            Path target = Path.of(this.parser.args[inputIndex + 1]);
+            source = this.path.resolve(source);
+            target = this.path.resolve(target);
+            
+            try {
+                if (this.parser.args[0].equals("-r")) {
+                    copyDir(source, target);
+                    return;
+                }
+                String fileContent = new String(Files.readAllBytes(source));
+
+                Files.write(target, fileContent.getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                System.err.println("Faild to read the file: " + e.getMessage());
+            }
+        }
+
         // This method will choose the suitable command method to be called
         public boolean chooseCommandAction(){
             System.out.println();
