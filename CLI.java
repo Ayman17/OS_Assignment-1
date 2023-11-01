@@ -3,7 +3,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.Comparator;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -45,7 +47,7 @@ public class CLI {
             commandMap.put("cp", v -> cp());
             commandMap.put("rm", v -> rm());
             commandMap.put("cat", v -> cat());
-            // commandMap.put("wc", v -> wc(parser.args));
+            commandMap.put("wc", v -> wc());
             // commandMap.put("history", v -> history(parser.args));
         }
         //TODO: args with " " should include " 
@@ -391,6 +393,43 @@ public class CLI {
                 System.out.println(fileContent);
             } catch (IOException e) {
                 System.err.println("Faild to read the file: " + e.getMessage());
+            }
+        }
+        
+        private void wc() {
+            if (getArgsLength() != 1) {
+                System.out.println("You have to provide exactly one argument: wc (file)");
+                return;
+            }
+
+            String pathString = getPathStringFromArgs(parser.args);
+
+            Path newPath = Path.of(pathString);
+
+            if (getNewPath(newPath) != null) {
+                if (Files.isDirectory(newPath)) {
+                    System.out.println(pathString + " is not a file");
+                    return;
+                }
+                int numLines = 0, numWords = 0, numCharacters = 0;
+                try {
+                    FileReader fileReader = new FileReader(this.path.resolve(newPath).toString());
+                    BufferedReader bufferedReader = new BufferedReader(fileReader);
+                    String line = "";
+                    
+                    while ((line = bufferedReader.readLine()) != null) {
+                        numLines++;
+                        numWords += line.split(" ").length;
+                        numCharacters += line.length();
+                    }
+                    bufferedReader.close();
+                    fileReader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(numLines + " " + numWords + " " + numCharacters + " " + pathString);
+            } else {
+                System.out.println("words count faild: (" + pathString +  ") is not a file");
             }
         }
         // This method will choose the suitable command method to be called
