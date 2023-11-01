@@ -1,5 +1,6 @@
 import java.util.HashMap;
 import java.util.Arrays;
+import java.util.Vector;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.Comparator;
@@ -29,11 +30,13 @@ public class CLI {
         private Parser parser;
         public Map<String, Consumer<Void>> commandMap = new HashMap<>();
         private Path path;
+        private Vector<String> history;
     
         public Terminal(){
             initCommandMap();
             this.path = Path.of("").toAbsolutePath();
             this.parser = new Parser();
+            this.history = new Vector<>();
         }
 
         private void initCommandMap() {
@@ -48,7 +51,7 @@ public class CLI {
             commandMap.put("rm", v -> rm());
             commandMap.put("cat", v -> cat());
             commandMap.put("wc", v -> wc());
-            // commandMap.put("history", v -> history(parser.args));
+            commandMap.put("history", v -> history());
         }
         //TODO: args with " " should include " 
         private String getPathStringFromArgs(String[] args) {
@@ -432,6 +435,22 @@ public class CLI {
                 System.out.println("words count faild: (" + pathString +  ") is not a file");
             }
         }
+        
+        private void history() {
+            if (getArgsLength() != 0) {
+                System.out.println("history command takes no arguments");
+                return;
+            }
+
+            if (this.history.size() == 0) {
+                System.out.println("No commands in history");
+                return;
+            }
+
+            for (int i = 0; i < this.history.size(); i++) {
+                System.out.println(i+1 + " " + this.history.elementAt(i)); 
+            }
+        }
         // This method will choose the suitable command method to be called
         public boolean chooseCommandAction(){
             System.out.println();
@@ -444,6 +463,7 @@ public class CLI {
             if (this.commandMap.containsKey(parser.commandName)){
                 Consumer<Void> action = this.commandMap.get(parser.commandName);
                 action.accept(null);
+                this.history.add(this.parser.commandName);
             }
             else {
                 System.out.println("This command is not available");
