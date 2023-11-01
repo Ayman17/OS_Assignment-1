@@ -43,7 +43,7 @@ public class CLI {
             commandMap.put("rmdir", v -> rmdir());
             commandMap.put("touch", v -> touch());
             commandMap.put("cp", v -> cp());
-            // commandMap.put("rm", v -> rm(parser.args));
+            commandMap.put("rm", v -> rm());
             // commandMap.put("cat", v -> cat(parser.args));
             // commandMap.put("wc", v -> wc(parser.args));
             // commandMap.put("history", v -> history(parser.args));
@@ -52,7 +52,7 @@ public class CLI {
         private String getPathStringFromArgs(String[] args) {
             String pathString = "";
             
-            for (int i = 0; i < parser.args.length; i++) {
+            for (int i = 0; i < getArgsLength(); i++) {
                 pathString += parser.args[i] + " ";
             }
             
@@ -74,7 +74,7 @@ public class CLI {
         }
         
         private boolean checkValideCreation(Path newPath, String pathString) {
-            if (parser.args.length < 1) {
+            if (getArgsLength() < 1) {
                 System.out.println("You have to provide at least one argument");
                 return false;
             }
@@ -125,6 +125,10 @@ public class CLI {
             }
         }
         
+        private int getArgsLength() {
+            return getArgsLength();
+        }
+
         private class FileComparator implements Comparator<File>{
             @Override
             public int compare(File file1, File file2) {
@@ -134,7 +138,7 @@ public class CLI {
         
         //Implement each command in a method, for example:
         private void echo(){
-            for (int i = 0; i < parser.args.length; i++) {
+            for (int i = 0; i < getArgsLength(); i++) {
                 System.out.print(parser.args[i] + " ");
             }
             System.out.println();
@@ -146,12 +150,12 @@ public class CLI {
         }
         
         private void cd(){
-            if (parser.args.length > 1) {
+            if (getArgsLength() > 1) {
                 System.out.println("You have to provide no or at least one argument");
                 return;
             }
             
-            if (parser.args.length == 0) {
+            if (getArgsLength() == 0) {
                 this.path = Path.of(System.getProperty("user.home"));
                 return;
             }
@@ -169,14 +173,14 @@ public class CLI {
         }
 
         private void ls() {
-            if (parser.args.length > 1) {
+            if (getArgsLength() > 1) {
                 System.out.println("Wrong number of arguments");
                 return;
             }
 
             boolean inReverse = false;
 
-            if (parser.args.length == 1) {
+            if (getArgsLength() == 1) {
                 if (parser.args[0].equals("-r")) {
                     inReverse = true;
                 } else {
@@ -189,7 +193,7 @@ public class CLI {
             File[] files = currentFolder.listFiles();
 
             Arrays.sort(files, new FileComparator());
-            
+
             for (int i = 0; i <  files.length; i++) {
                 int currentFileIndex = (inReverse) ? (files.length - 1) - i : i;
                 System.out.print(files[currentFileIndex].getName() + "\t");
@@ -201,7 +205,7 @@ public class CLI {
         private void mkdir() {
             String pathString = "";
             Path newPath = Path.of("");
-            for (int i = 0; i < parser.args.length; i++) {
+            for (int i = 0; i < getArgsLength(); i++) {
                 pathString = parser.args[i];
 
                 newPath = Path.of(pathString);
@@ -221,7 +225,7 @@ public class CLI {
         }
 
         private void rmdir() {
-            if (parser.args.length < 1) {
+            if (getArgsLength() < 1) {
                 System.out.println("You have to provide at least one argument");
                 return;
             }
@@ -287,7 +291,7 @@ public class CLI {
         }
         
         private void cp() {
-            if (parser.args.length != 2 && parser.args.length != 3) {
+            if (getArgsLength() != 2 && getArgsLength() != 3) {
                 System.out.println("You have to provide exactly two arguments: cp (source file) (target file)");
                 return;
             }
@@ -297,7 +301,7 @@ public class CLI {
 
             
             
-            for (int i = 0; i < parser.args.length; i++) {
+            for (int i = 0; i < getArgsLength(); i++) {
                 pathString = parser.args[i];
                 newPath = Path.of(pathString); 
                 
@@ -305,7 +309,7 @@ public class CLI {
                     System.out.println("Faild to copy: (" + pathString + ") is not directory");
                     return;
                 }
-                if (this.parser.args.length == 2 && (Files.isDirectory(newPath) || getNewPath(newPath) == null)) {
+                if (this.getArgsLength() == 2 && (Files.isDirectory(newPath) || getNewPath(newPath) == null)) {
                     System.out.println("Faild to copy: (" + pathString + ") is not file");
                     return;
                 }
@@ -330,6 +334,9 @@ public class CLI {
             }
         }
 
+        private void rm() {
+            if (this.getArgsLength() !=)
+        }
         // This method will choose the suitable command method to be called
         public boolean chooseCommandAction(){
             System.out.println();
