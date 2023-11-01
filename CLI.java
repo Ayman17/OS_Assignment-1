@@ -126,7 +126,7 @@ public class CLI {
         }
         
         private int getArgsLength() {
-            return getArgsLength();
+            return this.parser.args.length;
         }
 
         private class FileComparator implements Comparator<File>{
@@ -335,7 +335,29 @@ public class CLI {
         }
 
         private void rm() {
-            if (this.getArgsLength() !=)
+            if (getArgsLength() != 1) {
+                System.out.println("You have to provide exactly one argument: rm (file)");
+                return;
+            }
+
+            String pathString = getPathStringFromArgs(parser.args);
+
+            Path newPath = Path.of(pathString);
+
+            if (getNewPath(newPath) != null) {
+                try {
+                    if (Files.isDirectory(newPath)) {
+                        System.out.println(pathString + " is not a file");
+                        return;
+                    }
+                    Files.delete(this.path.resolve(newPath));
+                } catch (Exception e) {
+                    System.out.println("An unexpected error occurred");
+                    return; 
+                }
+            } else {
+                System.out.println("delete faild: (" + pathString +  ") no such file or directory");
+            }
         }
         // This method will choose the suitable command method to be called
         public boolean chooseCommandAction(){
