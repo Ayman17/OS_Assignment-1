@@ -2,6 +2,7 @@ import java.util.HashMap;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.Comparator;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
@@ -123,6 +124,14 @@ public class CLI {
                 System.err.println("Faild to read the file: " + e.getMessage());
             }
         }
+        
+        private class FileComparator implements Comparator<File>{
+            @Override
+            public int compare(File file1, File file2) {
+                return file1.getName().compareTo(file2.getName());
+            }
+        }
+        
         //Implement each command in a method, for example:
         private void echo(){
             for (int i = 0; i < parser.args.length; i++) {
@@ -146,7 +155,7 @@ public class CLI {
                 this.path = Path.of(System.getProperty("user.home"));
                 return;
             }
-            
+
             String pathString = getPathStringFromArgs(parser.args);
             
             Path newPath = Path.of(pathString);
@@ -179,6 +188,8 @@ public class CLI {
             File currentFolder = new File(this.path.toUri());
             File[] files = currentFolder.listFiles();
 
+            Arrays.sort(files, new FileComparator());
+            
             for (int i = 0; i <  files.length; i++) {
                 int currentFileIndex = (inReverse) ? (files.length - 1) - i : i;
                 System.out.print(files[currentFileIndex].getName() + "\t");
