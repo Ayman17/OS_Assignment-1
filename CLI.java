@@ -44,7 +44,7 @@ public class CLI {
             commandMap.put("touch", v -> touch());
             commandMap.put("cp", v -> cp());
             commandMap.put("rm", v -> rm());
-            // commandMap.put("cat", v -> cat(parser.args));
+            commandMap.put("cat", v -> cat());
             // commandMap.put("wc", v -> wc(parser.args));
             // commandMap.put("history", v -> history(parser.args));
         }
@@ -357,6 +357,40 @@ public class CLI {
                 }
             } else {
                 System.out.println("delete faild: (" + pathString +  ") no such file or directory");
+            }
+        }
+        
+        private void cat() {
+            if (getArgsLength() != 1 && getArgsLength() != 2) {
+                System.out.println("Invalid number of arguments: (cat file_name) or (cat file1 file2)");
+                return;
+            }
+            
+            String pathString = "";
+            Path newPath = Path.of("");
+
+            for (int i = 0; i < getArgsLength(); i++) {
+                pathString = parser.args[i];
+                newPath = Path.of(pathString); 
+                
+                if (Files.isDirectory(newPath) || getNewPath(newPath) == null) {
+                    System.out.println("Faild to copy: (" + pathString + ") is not file");
+                    return;
+                }
+            }
+
+            try {
+                String fileContent = "";
+                for (int i = 0; i < getArgsLength(); i++) {
+                    pathString = parser.args[i];
+                    newPath = Path.of(pathString);
+                    fileContent += new String(Files.readAllBytes(this.path.resolve(newPath)));
+                    fileContent += "\n";
+                } 
+
+                System.out.println(fileContent);
+            } catch (IOException e) {
+                System.err.println("Faild to read the file: " + e.getMessage());
             }
         }
         // This method will choose the suitable command method to be called
