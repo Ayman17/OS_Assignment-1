@@ -12,6 +12,8 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+// import java.nio.file.StandardOpenOption;
+import java.io.FileWriter;
 import java.io.IOException;
 
 public class CLI {
@@ -148,11 +150,13 @@ public class CLI {
             for (int i = 0; i < getArgsLength(); i++) {
                 output += parser.args[i] + " ";
             }
+            output += "\n";
             return output;
         }
         
         private String pwd(){
-            return this.path.toString();
+            String output = this.path.toString() + "\n";
+            return output;
         }
         
         private String cd(){
@@ -169,16 +173,20 @@ public class CLI {
             }
 
             String pathString = getPathStringFromArgs(parser.args);
-            
-            Path newPath = Path.of(pathString);
-            newPath = getNewPath(newPath);
+            try {
 
-            if (newPath == null) {
-                System.out.println("Invalid path");
-            } else {
-                this.path = newPath;
-            } 
-
+                Path newPath = Path.of(pathString);
+                newPath = getNewPath(newPath);
+                
+                if (newPath == null) {
+                    return "Invalid path";
+                } else {
+                    this.path = newPath;
+                } 
+                
+            } catch (Exception e) {
+                return "Invalid path";
+            }
             return output;
         }
 
@@ -208,7 +216,8 @@ public class CLI {
                 int currentFileIndex = (inReverse) ? (files.length - 1) - i : i;
                 output += (files[currentFileIndex].getName() + "\t");
             }
-
+            
+            output += "\n";
             return output;
         } 
 
@@ -304,7 +313,7 @@ public class CLI {
             } catch (Exception e) {
                 return "An unexpected error occurred";
             }
-            return "";
+            return output; 
         }
         
         private String cp() {
@@ -347,7 +356,8 @@ public class CLI {
 
                 Files.write(target, fileContent.getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
-                System.err.println("Faild to read the file: " + e.getMessage());
+                output = "Faild to read the file: " + e.getMessage();
+                return output;
             }
 
             return output;
@@ -471,6 +481,60 @@ public class CLI {
             return output;
         }
         // This method will choose the suitable command method to be called
+
+        private String[] getOutputFile() {
+            if (this.parser.args.length >= 2 ) {
+                if (this.parser.args[this.parser.args.length - 2].equals(">")) {
+                    String[] result = {this.parser.args[this.parser.args.length - 1], "w"};
+                    this.parser.args = Arrays.copyOf(this.parser.args, this.parser.args.length - 2);
+
+                    return result;
+                }
+                
+                if (this.parser.args[this.parser.args.length - 2].equals(">>")) {
+                    String[] result = {this.parser.args[this.parser.args.length - 1], "a"};
+                    this.parser.args = Arrays.copyOf(this.parser.args, this.parser.args.length - 2);
+
+                    return result;
+                }
+            }
+
+            return null;
+       }
+
+        private void writeOutput(String commandOutput, String[] outputInfo) {
+            String outputFilePath = (outputInfo != null) ? outputInfo[0] : null;
+            String outputType = (outputInfo != null) ? outputInfo[1] : null;
+
+            if (outputFilePath== null) {
+                System.out.println(commandOutput);
+            }
+            
+            else {
+                Path newPath = this.path.resolve(outputFilePath);
+
+                if (newPath == null) {
+                    System.err.println("Could not write / append the output to the file");
+                    return;
+                }
+                
+                try {
+                    boolean append = (outputType == "w") ? false : true;
+                    FileWriter f =  new FileWriter(newPath.toFile(), append);
+                    if (append) {
+                        f.append(commandOutput);
+                    } else {
+                        f.write(commandOutput);
+                    }
+                    f.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+
+        }
+
         public boolean chooseCommandAction(){
             System.out.println();
             System.out.print(path.toString() + "> ");
@@ -479,9 +543,12 @@ public class CLI {
             if (this.parser.commandName.equals("exit")) {
                 return false;
             }
-            if (this.commandMap.containsKey(parser.commandName)){
-                String output = this.commandMap.get(parser.commandName).apply(null);
-                System.out.println(output);
+            if (this.commandMap.containsKey(parser.commandName)) {
+                String[] outputInfo= getOutputFile(); 
+
+                String commandOutput = this.commandMap.get(parser.commandName).apply(null);
+                
+                writeOutput(commandOutput, outputInfo);
                 this.history.add(this.parser.commandName);
             }
             else {
