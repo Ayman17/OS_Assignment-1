@@ -2,7 +2,7 @@ import java.util.HashMap;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.Comparator;
 import java.io.BufferedReader;
 import java.io.File;
@@ -28,7 +28,7 @@ public class CLI {
     class Terminal {
 
         private Parser parser;
-        public Map<String, Consumer<Void>> commandMap = new HashMap<>();
+        public Map<String, Function<Void, String>> commandMap = new HashMap<>();
         private Path path;
         private Vector<String> history;
     
@@ -45,7 +45,7 @@ public class CLI {
             commandMap.put("cd", v -> cd());
             commandMap.put("ls", v -> ls());
             commandMap.put("mkdir", v -> mkdir());
-            commandMap.put("rmdir", v -> rmdir());
+            // commandMap.put("rmdir", v -> rmdir());
             commandMap.put("touch", v -> touch());
             commandMap.put("cp", v -> cp());
             commandMap.put("rm", v -> rm());
@@ -142,27 +142,30 @@ public class CLI {
         }
         
         //Implement each command in a method, for example:
-        private void echo(){
+        private String echo(){
+            String output = "";
+
             for (int i = 0; i < getArgsLength(); i++) {
-                System.out.print(parser.args[i] + " ");
+                output += parser.args[i] + " ";
             }
-            System.out.println();
+            return output;
         }
         
-        private void pwd(){
-            String s = this.path.toString();
-            System.out.println(s);
+        private String pwd(){
+            return this.path.toString();
         }
         
-        private void cd(){
+        private String cd(){
+            String output = "";
+
             if (getArgsLength() > 1) {
-                System.out.println("You have to provide no or at least one argument");
-                return;
+                output = "You have to provide no or at least one argument";
+                return output;
             }
             
             if (getArgsLength() == 0) {
                 this.path = Path.of(System.getProperty("user.home"));
-                return;
+                return output;
             }
 
             String pathString = getPathStringFromArgs(parser.args);
@@ -175,12 +178,15 @@ public class CLI {
             } else {
                 this.path = newPath;
             } 
+
+            return output;
         }
 
-        private void ls() {
+        private String ls() {
+            String output = "";
+
             if (getArgsLength() > 1) {
-                System.out.println("Wrong number of arguments");
-                return;
+                return "Wrong number of arguments";
             }
 
             boolean inReverse = false;
@@ -189,8 +195,7 @@ public class CLI {
                 if (parser.args[0].equals("-r")) {
                     inReverse = true;
                 } else {
-                    System.out.println("Invalid argument");
-                    return;
+                    return "Invalid argument";
                 }
             }
 
@@ -201,13 +206,15 @@ public class CLI {
 
             for (int i = 0; i <  files.length; i++) {
                 int currentFileIndex = (inReverse) ? (files.length - 1) - i : i;
-                System.out.print(files[currentFileIndex].getName() + "\t");
+                output += (files[currentFileIndex].getName() + "\t");
             }
 
-            System.out.println();
+            return output;
         } 
 
-        private void mkdir() {
+        private String mkdir() {
+            String output = "";
+
             String pathString = "";
             Path newPath = Path.of("");
             for (int i = 0; i < getArgsLength(); i++) {
@@ -216,89 +223,94 @@ public class CLI {
                 newPath = Path.of(pathString);
 
                 if (!checkValideCreation(newPath, pathString)) {
-                    return;
+                    return output; 
                 }
 
                 try {
                     newPath = this.path.resolve(newPath);
                     Files.createDirectory(newPath);
                 } catch (Exception e) {
-                    System.out.println("An unexpected error occurred");
-                    return;
+                    return "An unexpected error occurred";
                 } 
             }
+
+            return output;
         }
 
-        private void rmdir() {
-            if (getArgsLength() < 1) {
-                System.out.println("You have to provide at least one argument");
-                return;
-            }
+        // FIXME: The foreach function takes Consumer ? make it take Function
+        // private String rmdir() {
+        //     String output = "";
+        //     if (getArgsLength() < 1) {
+        //         return "You have to provide at least one argument";
+        //     }
 
-            if (this.parser.args[0].equals("*")) {
-                try {
-                    Files.walk(this.path, 1)
-                        .filter(Files::isDirectory)
-                        .forEach(directory -> {
-                            try {
-                                if (directory != this.path) {
-                                    Files.delete(directory);
-                                }
-                            } catch (Exception e) {
-                                System.out.println("delete faild: (" + directory + ") is not empty");
-                                return;
-                            }
-                        });
-                } catch (Exception e) {
-                    return;
-                }
-                return;
-            }
+        //     if (this.parser.args[0].equals("*")) {
+        //         try {
+        //             Files.walk(this.path, 1)
+        //                 .filter(Files::isDirectory)
+        //                 .forEach(directory -> {
+        //                     try {
+        //                         if (directory != this.path) {
+        //                             Files.delete(directory);
+        //                         }
+        //                     } catch (Exception e) {
+        //                         output = "delete faild: (" + directory + ") is not empty";
+        //                         return output;
+        //                     }
+        //                 });
+        //         } catch (Exception e) {
+        //             return output;
+        //         }
+        //         return output;
+        //     }
 
-            String pathString = getPathStringFromArgs(parser.args);
+        //     String pathString = getPathStringFromArgs(parser.args);
 
-            Path newPath = Path.of(pathString);
+        //     Path newPath = Path.of(pathString);
 
-            if (getNewPath(newPath) != null) {
-                try {
-                    if (!Files.isDirectory(newPath)) {
-                        System.out.println(pathString + " is not a directory");
-                        return;
-                    }
-                    Files.delete(newPath);
-                } catch (Exception e) {
-                    System.out.println("An unexpected error occurred");
-                    return; 
-                }
-            } else {
-                System.out.println("delete faild: (" + pathString +  ") no such file or directory");
-            }
+        //     if (getNewPath(newPath) != null) {
+        //         try {
+        //             if (!Files.isDirectory(newPath)) {
+        //                 output = pathString + " is not a directory";
+        //                 return output;
+        //             }
+        //             Files.delete(newPath);
+        //         } catch (Exception e) {
+        //             output = "An unexpected error occurred";
+        //             return output;; 
+        //         }
+        //     } else {
+        //         output = "delete faild: (" + pathString +  ") no such file or directory";
+        //         return output;
+        //     }
 
-            
-        }
+        //     return output; 
+        // }
         
-        private void touch() {
+        private String touch() {
+            String output = "";
+
             String pathString = getPathStringFromArgs(parser.args);
 
             Path newPath = Path.of(pathString);
 
             if (!checkValideCreation(newPath, pathString)) {
-                return;
+                return "";
             }
 
             try {
                 newPath = this.path.resolve(newPath);
                 Files.createFile(newPath);
             } catch (Exception e) {
-                System.out.println("An unexpected error occurred");
-                return;
+                return "An unexpected error occurred";
             }
+            return "";
         }
         
-        private void cp() {
+        private String cp() {
+            String output = "";
             if (getArgsLength() != 2 && getArgsLength() != 3) {
-                System.out.println("You have to provide exactly two arguments: cp (source file) (target file)");
-                return;
+                return "You have to provide exactly two arguments: cp (source file) (target file)";
             }
             
             String pathString = "";
@@ -311,12 +323,12 @@ public class CLI {
                 newPath = Path.of(pathString); 
                 
                 if (this.parser.args[0] == "-r" && (!Files.isDirectory(newPath) || getNewPath(newPath) == null)) {
-                    System.out.println("Faild to copy: (" + pathString + ") is not directory");
-                    return;
+                    output = "Faild to copy: (" + pathString + ") is not directory";
+                    return output;
                 }
                 if (this.getArgsLength() == 2 && (Files.isDirectory(newPath) || getNewPath(newPath) == null)) {
-                    System.out.println("Faild to copy: (" + pathString + ") is not file");
-                    return;
+                    output = "Faild to copy: (" + pathString + ") is not file";
+                    return output;
                 }
             }
             int inputIndex = (this.parser.args[0].equals("-r")) ? 1 : 0;
@@ -329,7 +341,7 @@ public class CLI {
             try {
                 if (this.parser.args[0].equals("-r")) {
                     copyDir(source, target);
-                    return;
+                    return "";
                 }
                 String fileContent = new String(Files.readAllBytes(source));
 
@@ -337,12 +349,14 @@ public class CLI {
             } catch (IOException e) {
                 System.err.println("Faild to read the file: " + e.getMessage());
             }
+
+            return output;
         }
 
-        private void rm() {
+        private String rm() {
+            String output = "";
             if (getArgsLength() != 1) {
-                System.out.println("You have to provide exactly one argument: rm (file)");
-                return;
+                return "You have to provide exactly one argument: rm (file)";
             }
 
             String pathString = getPathStringFromArgs(parser.args);
@@ -352,23 +366,24 @@ public class CLI {
             if (getNewPath(newPath) != null) {
                 try {
                     if (Files.isDirectory(newPath)) {
-                        System.out.println(pathString + " is not a file");
-                        return;
+                        output = pathString + " is not a file";
+                        return output;
                     }
                     Files.delete(this.path.resolve(newPath));
                 } catch (Exception e) {
-                    System.out.println("An unexpected error occurred");
-                    return; 
+                    return "An unexpected error occurred";
                 }
             } else {
-                System.out.println("delete faild: (" + pathString +  ") no such file or directory");
+                output = "delete faild: (" + pathString +  ") no such file or directory";
+                return output;
             }
+            return output;
         }
         
-        private void cat() {
+        private String cat() {
+            String output = "";
             if (getArgsLength() != 1 && getArgsLength() != 2) {
-                System.out.println("Invalid number of arguments: (cat file_name) or (cat file1 file2)");
-                return;
+                return "Invalid number of arguments: (cat file_name) or (cat file1 file2)";
             }
             
             String pathString = "";
@@ -379,8 +394,8 @@ public class CLI {
                 newPath = Path.of(pathString); 
                 
                 if (Files.isDirectory(newPath) || getNewPath(newPath) == null) {
-                    System.out.println("Faild to copy: (" + pathString + ") is not file");
-                    return;
+                    output = "Faild to copy: (" + pathString + ") is not file";
+                    return output;
                 }
             }
 
@@ -393,16 +408,18 @@ public class CLI {
                     fileContent += "\n";
                 } 
 
-                System.out.println(fileContent);
+                return fileContent;
             } catch (IOException e) {
-                System.err.println("Faild to read the file: " + e.getMessage());
+                output = "Faild to read the file: " + e.getMessage();
+                return output;
             }
         }
         
-        private void wc() {
+        private String wc() {
+            String output = "";
+
             if (getArgsLength() != 1) {
-                System.out.println("You have to provide exactly one argument: wc (file)");
-                return;
+                return "You have to provide exactly one argument: wc (file)";
             }
 
             String pathString = getPathStringFromArgs(parser.args);
@@ -411,8 +428,8 @@ public class CLI {
 
             if (getNewPath(newPath) != null) {
                 if (Files.isDirectory(newPath)) {
-                    System.out.println(pathString + " is not a file");
-                    return;
+                    output = pathString + " is not a file";
+                    return output;
                 }
                 int numLines = 0, numWords = 0, numCharacters = 0;
                 try {
@@ -430,26 +447,28 @@ public class CLI {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                System.out.println(numLines + " " + numWords + " " + numCharacters + " " + pathString);
+                output = numLines + " " + numWords + " " + numCharacters + " " + pathString;
+                return output;
             } else {
-                System.out.println("words count faild: (" + pathString +  ") is not a file");
+                output = "words count faild: (" + pathString +  ") is not a file";
+                return output;
             }
         }
         
-        private void history() {
+        private String history() {
+            String output = "";
             if (getArgsLength() != 0) {
-                System.out.println("history command takes no arguments");
-                return;
+                return "history command takes no arguments";
             }
 
             if (this.history.size() == 0) {
-                System.out.println("No commands in history");
-                return;
+                return "No commands in history";
             }
 
             for (int i = 0; i < this.history.size(); i++) {
-                System.out.println(i+1 + " " + this.history.elementAt(i)); 
+                output += i+1 + " " + this.history.elementAt(i) + "\n"; 
             }
+            return output;
         }
         // This method will choose the suitable command method to be called
         public boolean chooseCommandAction(){
@@ -461,8 +480,8 @@ public class CLI {
                 return false;
             }
             if (this.commandMap.containsKey(parser.commandName)){
-                Consumer<Void> action = this.commandMap.get(parser.commandName);
-                action.accept(null);
+                String output = this.commandMap.get(parser.commandName).apply(null);
+                System.out.println(output);
                 this.history.add(this.parser.commandName);
             }
             else {
