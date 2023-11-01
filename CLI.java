@@ -137,11 +137,16 @@ public class CLI {
         }
         
         private void cd(){
-            if (parser.args.length < 1) {
-                System.out.println("You have to provide at least one argument");
+            if (parser.args.length > 1) {
+                System.out.println("You have to provide no or at least one argument");
                 return;
             }
-           
+            
+            if (parser.args.length == 0) {
+                this.path = Path.of(System.getProperty("user.home"));
+                return;
+            }
+            
             String pathString = getPathStringFromArgs(parser.args);
             
             Path newPath = Path.of(pathString);
