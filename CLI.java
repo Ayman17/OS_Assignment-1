@@ -15,6 +15,7 @@ import java.nio.file.StandardCopyOption;
 // import java.nio.file.StandardOpenOption;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class CLI {
 
@@ -33,6 +34,7 @@ public class CLI {
         public Map<String, Function<Void, String>> commandMap = new HashMap<>();
         private Path path;
         private Vector<String> history;
+        private String SPACE_CODE = "%32";
     
         public Terminal(){
             initCommandMap();
@@ -56,16 +58,15 @@ public class CLI {
             commandMap.put("history", v -> history());
         }
         //TODO: args with " " should include " 
-        private String getPathStringFromArgs(String[] args) {
-            String pathString = "";
+        private String[] getPathStringFromArgs(String[] args) {
+            // ArrayList<String> result = new ArrayList<String>();
+            String[] result = new String[args.length]; 
             
             for (int i = 0; i < getArgsLength(); i++) {
-                pathString += parser.args[i] + " ";
+                result[i] = args[i].replace(SPACE_CODE, " ");
             }
             
-            pathString = pathString.substring(0, pathString.length() - 1);
-
-            return pathString;
+            return result;
         }
 
         private Path getNewPath(Path newPath) {
@@ -172,7 +173,8 @@ public class CLI {
                 return output;
             }
 
-            String pathString = getPathStringFromArgs(parser.args);
+            String pathString = getPathStringFromArgs(parser.args)[0];
+
             try {
 
                 Path newPath = Path.of(pathString);
@@ -226,8 +228,9 @@ public class CLI {
 
             String pathString = "";
             Path newPath = Path.of("");
+            String[] listOfPaths = getPathStringFromArgs(parser.args);
             for (int i = 0; i < getArgsLength(); i++) {
-                pathString = parser.args[i];
+                pathString = listOfPaths[i];
 
                 newPath = Path.of(pathString);
 
@@ -248,10 +251,10 @@ public class CLI {
 
         private String rmdir() {
             String output = "";
-            if (getArgsLength() < 1) {
-                return "You have to provide at least one argument";
+            if (getArgsLength() != 1) {
+                return "You have to provide exactly one argument";
             }
-
+            
             if (this.parser.args[0].equals("*")) {
                 try {
                     Files.walk(this.path, 1)
@@ -272,7 +275,7 @@ public class CLI {
                 return output;
             }
 
-            String pathString = getPathStringFromArgs(parser.args);
+            String pathString = getPathStringFromArgs(parser.args)[0];
 
             Path newPath = Path.of(pathString);
 
@@ -297,8 +300,12 @@ public class CLI {
         
         private String touch() {
             String output = "";
+            
+            if (getArgsLength() != 1) {
+                return "You have to provide exactly one argument";
+            }
 
-            String pathString = getPathStringFromArgs(parser.args);
+            String pathString = getPathStringFromArgs(parser.args)[0];
 
             Path newPath = Path.of(pathString);
 
@@ -368,7 +375,7 @@ public class CLI {
                 return "You have to provide exactly one argument: rm (file)";
             }
 
-            String pathString = getPathStringFromArgs(parser.args);
+            String pathString = getPathStringFromArgs(parser.args)[0];
 
             Path newPath = Path.of(pathString);
 
@@ -431,7 +438,7 @@ public class CLI {
                 return "You have to provide exactly one argument: wc (file)";
             }
 
-            String pathString = getPathStringFromArgs(parser.args);
+            String pathString = getPathStringFromArgs(parser.args)[0];
 
             Path newPath = Path.of(pathString);
 
