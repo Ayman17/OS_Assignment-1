@@ -47,7 +47,7 @@ public class CLI {
             commandMap.put("cd", v -> cd());
             commandMap.put("ls", v -> ls());
             commandMap.put("mkdir", v -> mkdir());
-            // commandMap.put("rmdir", v -> rmdir());
+            commandMap.put("rmdir", v -> rmdir());
             commandMap.put("touch", v -> touch());
             commandMap.put("cp", v -> cp());
             commandMap.put("rm", v -> rm());
@@ -246,55 +246,54 @@ public class CLI {
             return output;
         }
 
-        // FIXME: The foreach function takes Consumer ? make it take Function
-        // private String rmdir() {
-        //     String output = "";
-        //     if (getArgsLength() < 1) {
-        //         return "You have to provide at least one argument";
-        //     }
+        private String rmdir() {
+            String output = "";
+            if (getArgsLength() < 1) {
+                return "You have to provide at least one argument";
+            }
 
-        //     if (this.parser.args[0].equals("*")) {
-        //         try {
-        //             Files.walk(this.path, 1)
-        //                 .filter(Files::isDirectory)
-        //                 .forEach(directory -> {
-        //                     try {
-        //                         if (directory != this.path) {
-        //                             Files.delete(directory);
-        //                         }
-        //                     } catch (Exception e) {
-        //                         output = "delete faild: (" + directory + ") is not empty";
-        //                         return output;
-        //                     }
-        //                 });
-        //         } catch (Exception e) {
-        //             return output;
-        //         }
-        //         return output;
-        //     }
+            if (this.parser.args[0].equals("*")) {
+                try {
+                    Files.walk(this.path, 1)
+                    .filter(Files::isDirectory)
+                    .forEach(directory -> {
+                            try {
+                                if (directory != this.path) {
+                                    Files.delete(directory);
+                                }
+                            } catch (Exception e) {
+                                String error = "delete faild: (" + directory + ") is not empty";
+                                throw new ArithmeticException(error);
+                            }
+                        });
+                } catch (Exception e) {
+                    return e.getMessage();
+                }
+                return output;
+            }
 
-        //     String pathString = getPathStringFromArgs(parser.args);
+            String pathString = getPathStringFromArgs(parser.args);
 
-        //     Path newPath = Path.of(pathString);
+            Path newPath = Path.of(pathString);
 
-        //     if (getNewPath(newPath) != null) {
-        //         try {
-        //             if (!Files.isDirectory(newPath)) {
-        //                 output = pathString + " is not a directory";
-        //                 return output;
-        //             }
-        //             Files.delete(newPath);
-        //         } catch (Exception e) {
-        //             output = "An unexpected error occurred";
-        //             return output;; 
-        //         }
-        //     } else {
-        //         output = "delete faild: (" + pathString +  ") no such file or directory";
-        //         return output;
-        //     }
+            if (getNewPath(newPath) != null) {
+                try {
+                    if (!Files.isDirectory(newPath)) {
+                        output = pathString + " is not a directory";
+                        return output;
+                    }
+                    Files.delete(newPath);
+                } catch (Exception e) {
+                    output = "delete faild: (" + pathString + ") is not empty";
+                    return output;
+                }
+            } else {
+                output = "delete faild: (" + pathString +  ") no such file or directory";
+                return output;
+            }
 
-        //     return output; 
-        // }
+            return output; 
+        }
         
         private String touch() {
             String output = "";
